@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JsonXplorer API Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- Toastify Notification Library -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <style>
+        :root {
+            --bg-main: #1e1e1e;
+            --bg-header: #252526;
+            --bg-sidebar: #252526;
+            --bg-input: #333333;
+            --border-color: #3c3c3c;
+            --text-main: #d4d4d4;
+            --text-muted: #888;
+            --accent-blue: #007acc;
+            --accent-blue-light: #4daafc;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-orange: #ce9178;
+            --accent-purple: #c586c0;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        /* --- Custom Scrollbars --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3c3c3c;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #505050;
+        }
+
+        header {
+            background-color: var(--bg-header);
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            color: var(--accent-blue-light);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .api-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select,
+        input[type="text"],
+        input[type="url"],
+        input[type="password"] {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        select {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            padding-right: 25px;
+        }
+
+        select option {
+            background-color: var(--bg-input);
+        }
+
+        input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #1177bb;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button.danger {
+            background-color: var(--accent-red);
+            padding: 4px;
+            font-size: 11px;
+            border-radius: 3px;
+        }
+
+        button.danger:hover {
+            background-color: #d33;
+        }
+
+        button.secondary {
+            background-color: #3a3a3a;
+        }
+
+        button.secondary:hover {
+            background-color: #4a4a4a;
+        }
+
+        /* --- Loading Spinner Animation --- */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- Main Layout --- */
+        #main-container {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .view-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Search Bar */
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: var(--accent-blue);
+        }
+
+        .search-wrapper>svg {
+            color: var(--text-muted);
+            width: 14px;
+            height: 14px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 7px 10px;
+            outline: none;
+            box-shadow: none;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .search-count {
+            font-size: 11px;
+            color: var(--accent-yellow);
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .tree-quick-tools {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: var(--bg-input);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        #json-view-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #editor-container {
+            flex: 1;
+            display: none;
+            border-right: 1px solid var(--border-color);
+        }
+
+        #editor-container.active {
+            display: block;
+        }
+
+        #tree-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        #tree-container.active {
+            display: block;
+        }
+
+        /* Monaco Line Highlight on JSON Error */
+        .monaco-error-line-highlight {
+            background: rgba(239, 68, 68, 0.22) !important;
+            border-left: 3px solid #EF4444 !important;
+        }
+
+        /* --- Clean Hierarchy & Gutter System --- */
+        .tree-item {
+            position: relative;
+            cursor: default;
+            line-height: 1.7;
+        }
+
+        .tree-children {
+            position: relative;
+            margin-left: 10px;
+            padding-left: 16px;
+            border-left: 1px dotted #404040;
+        }
+
+        /* Node Row: Flex layout with dedicated left gutter */
+        .tree-row {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px 2px 0px;
+            border-radius: 4px;
+            min-height: 24px;
+            transition: background-color 0.12s ease;
+            white-space: nowrap;
+        }
+
+        .tree-row:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Dedicated Toggle Arrow Gutter */
+        .tree-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-right: 6px;
+            color: #858585;
+            border-radius: 3px;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+
+        .tree-toggle:hover {
+            color: var(--accent-blue-light);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tree-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .tree-toggle svg {
+            width: 14px;
+            height: 14px;
+            pointer-events: none;
+            stroke-width: 2.2;
+        }
+
+        /* Spacer for leaf nodes to align key with expandable nodes */
+        .tree-spacer {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+
+        .tree-key {
+            color: #9cdcfe;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .tree-colon {
+            color: #888;
+            margin-right: 6px;
+        }
+
+        .tree-value {
+            word-break: break-all;
+        }
+
+        .tree-string {
+            color: var(--accent-orange);
+        }
+
+        .tree-number {
+            color: #b5cea8;
+        }
+
+        .tree-boolean {
+            color: var(--accent-blue-light);
+            font-weight: bold;
+        }
+
+        .tree-null {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .tree-bracket {
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        .tree-bracket-collapsed {
+            display: none;
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        .tree-item.collapsed>.tree-row .tree-bracket-collapsed {
+            display: inline;
+        }
+
+        .tree-item.collapsed>.tree-children {
+            display: none;
+        }
+
+        .tree-bracket-close {
+            padding-left: 26px;
+            color: var(--accent-purple);
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .tree-badge {
+            font-size: 10px;
+            color: #888;
+            background: #2b2b2b;
+            border: 1px solid #383838;
+            padding: 1px 7px;
+            border-radius: 10px;
+            margin-left: 8px;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        /* --- Hover Actions: ONLY directly hovered row reveals buttons --- */
+        .tree-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+        }
+
+        .tree-row:hover .tree-actions {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tree-action-btn {
+            background: #2d2d2d;
+            color: #aaa;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.4;
+            transition: all 0.12s ease;
+        }
+
+        .tree-action-btn:hover {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue-light);
+        }
+
+        .tree-action-btn.copied {
+            background: var(--accent-green) !important;
+            color: #ffffff !important;
+            border-color: #34d399 !important;
+        }
+
+        .highlight {
+            background-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 0px 2px rgba(255, 215, 0, 0.5);
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* --- Toastify Styling --- */
+        .toastify {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            max-width: 520px;
+            line-height: 1.5;
+        }
+
+        .toast-success {
+            background: linear-gradient(135deg, #0d2818 0%, #133a23 100%) !important;
+            border-color: #10B981 !important;
+            color: #e6fffa !important;
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #2b1114 0%, #3d1419 100%) !important;
+            border-color: #EF4444 !important;
+            color: #fee2e2 !important;
+        }
+
+        .toast-warning {
+            background: linear-gradient(135deg, #2e1d08 0%, #42290a 100%) !important;
+            border-color: #f59e0b !important;
+            color: #fef3c7 !important;
+        }
+
+        .toast-info {
+            background: linear-gradient(135deg, #102236 0%, #17324d 100%) !important;
+            border-color: #007acc !important;
+            color: #e0f2fe !important;
+        }
+
+        .toast-btn {
+            margin-top: 8px;
+            background: #EF4444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+
+        .toast-btn:hover {
+            background: #dc2626;
+        }
+
+        .toast-btn.repair {
+            background: #10B981;
+        }
+
+        .toast-btn.repair:hover {
+            background: #059669;
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-header);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 800px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--accent-blue-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border: none;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            color: white;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        .modal-body {
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .kv-grid input {
+            width: 100%;
+        }
+
+        .modal-editor-container {
+            height: 250px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h2><i data-lucide="terminal"></i> JsonXplorer API Studio</h2>
+        <div class="api-row">
+            <select id="httpMethod">
+                <option>GET</option>
+                <option>POST</option>
+                <option>PUT</option>
+                <option>DELETE</option>
+            </select>
+            <input type="url" id="apiUrl" placeholder="Paste URL here (auto-extracts query params)"
+                style="flex:1; min-width: 260px;" oninput="autoExtractParams()">
+            <button onclick="sendApiRequest()" id="sendBtn"><i data-lucide="send" style="width:16px;height:16px;"></i>
+                Send</button>
+            <button class="secondary" onclick="parseEditorToTree()" id="parseBtn"
+                title="Parse and format JSON, auto-unescaping nested strings"><i data-lucide="binary"
+                    style="width:16px;height:16px;"></i> Parse JSON</button>
+            <button class="secondary" onclick="copyCurrentJSON()" id="copyBtn"
+                title="Copy full formatted JSON to clipboard"><i data-lucide="copy" style="width:16px;height:16px;"></i>
+                Copy JSON</button>
+            <button class="secondary" onclick="exportJSON()" id="exportBtn" title="Download JSON file"><i
+                    data-lucide="download" style="width:16px;height:16px;"></i> Export</button>
+            <button class="secondary" onclick="openModal()" title="Configure params, auth & headers"><i
+                    data-lucide="settings" style="width:16px;height:16px;"></i> Config</button>
+        </div>
+    </header>
+
+    <div id="main-container">
+        <div class="view-toolbar">
+            <div class="toolbar-left">
+                <div class="search-wrapper">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchInput" placeholder="Search keys & values..." oninput="liveSearch()">
+                    <span id="searchBadge" class="search-count" style="display:none;"></span>
+                </div>
+                <div class="tree-quick-tools" id="treeQuickTools" style="display:none;">
+                    <button class="secondary" onclick="expandAllTree()" style="padding: 5px 9px; font-size: 11px;"
+                        title="Expand all nodes">
+                        <i data-lucide="unfold-vertical" style="width:13px;height:13px;"></i> Expand All
+                    </button>
+                    <button class="secondary" onclick="collapseAllTree()" style="padding: 5px 9px; font-size: 11px;"
+                        title="Collapse nodes">
+                        <i data-lucide="fold-vertical" style="width:13px;height:13px;"></i> Collapse All
+                    </button>
+                </div>
+            </div>
+
+            <div class="toolbar-right">
+                <div class="toggle-group">
+                    <button id="toggle-code" class="toggle-btn active" onclick="switchView('code')"><i
+                            data-lucide="braces" style="width:14px;height:14px;"></i> Code</button>
+                    <button id="toggle-tree" class="toggle-btn" onclick="switchView('tree')"><i data-lucide="list-tree"
+                            style="width:14px;height:14px;"></i> Tree</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="json-view-area">
+            <div id="editor-container" class="active"></div>
+            <div id="tree-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal for API Configuration -->
+    <div id="configModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i data-lucide="sliders-horizontal" style="width:20px;height:20px;"></i> Request Configuration</h3>
+                <button class="danger" onclick="closeModal()"><i data-lucide="x"
+                        style="width:16px;height:16px;"></i></button>
+            </div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" onclick="switchTab('params', this)"><i data-lucide="list"
+                        style="width:14px;height:14px;"></i> Query Params</button>
+                <button class="tab-btn" onclick="switchTab('auth', this)"><i data-lucide="lock"
+                        style="width:14px;height:14px;"></i> Authentication</button>
+                <button class="tab-btn" onclick="switchTab('headers', this)"><i data-lucide="key-round"
+                        style="width:14px;height:14px;"></i> Headers</button>
+            </div>
+            <div class="modal-body">
+                <!-- Params Tab -->
+                <div id="tab-params" class="tab-content">
+                    <div class="toggle-group" style="margin-bottom: 15px;">
+                        <button class="tab-btn active" onclick="switchInputMode('params', 'normal', this)">Normal
+                            Input</button>
+                        <button class="tab-btn" onclick="switchInputMode('params', 'json', this)">JSON Input</button>
+                    </div>
+                    <div id="params-normal" class="input-mode">
+                        <div id="paramsSection"></div>
+                        <button class="secondary" onclick="addModalRow('paramsSection')"><i data-lucide="plus"
+                                style="width:14px;height:14px;"></i> Add Param</button>
+                    </div>
+                    <div id="params-json" class="input-mode" style="display:none;">
+                        <div id="paramsJsonEditor" class="modal-editor-container"></div>
+                    </div>
+                </div>
+
+                <!-- Auth Tab -->
+                <div id="tab-auth" class="tab-content" style="display:none;">
+                    <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
+                        <label>Type:</label>
+                        <select id="authType" onchange="toggleAuthInput()">
+                            <option value="none">No Auth</option>
+                            <option value="bearer">Bearer Token</option>
+                            <option value="basic">Basic Auth</option>
+                        </select>
+                    </div>
+                    <div id="basicAuth" style="display:none; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="authUser" placeholder="Username" style="flex:1">
+                        <input type="password" id="authPass" placeholder="Password" style="flex:1">
+                    </div>
+                    <input type="text" id="authToken" placeholder="Bearer Token"
+                        style="display:none; width:100%; margin-bottom:10px;">
+                </div>
+
+                <!-- Headers Tab -->
+                <div id="tab-headers" class="tab-content" style="display:none;">
+                    <div class="toggle-group" style="margin-bottom: 15px;">
+                        <button class="tab-btn active" onclick="switchInputMode('headers', 'normal', this)">Normal
+                            Input</button>
+                        <button class="tab-btn" onclick="switchInputMode('headers', 'json', this)">JSON Input</button>
+                    </div>
+                    <div id="headers-normal" class="input-mode">
+                        <div id="headersSection"></div>
+                        <button class="secondary" onclick="addModalRow('headersSection')"><i data-lucide="plus"
+                                style="width:14px;height:14px;"></i> Add Header</button>
+                    </div>
+                    <div id="headers-json" class="input-mode" style="display:none;">
+                        <div id="headersJsonEditor" class="modal-editor-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <script>
+        let editor;
+        let paramsJsonEditor, headersJsonEditor;
+        let parsedJSONData = null;
+        let errorDecorations = [];
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // --- Toast Helper Function ---
+        function showToast(options) {
+            if (typeof options === 'string') {
+                options = {message: options, type: 'info'};
+            }
+            const {title, message, type = 'info', duration = 3500, buttons = []} = options;
+
+            const iconMap = {
+                success: 'check-circle',
+                error: 'alert-triangle',
+                warning: 'alert-circle',
+                info: 'info'
+            };
+            const iconName = iconMap[type] || 'info';
+
+            const toastNode = document.createElement('div');
+            toastNode.style.display = 'flex';
+            toastNode.style.flexDirection = 'column';
+            toastNode.style.gap = '4px';
+            toastNode.style.width = '100%';
+
+            const headerRow = document.createElement('div');
+            headerRow.style.display = 'flex';
+            headerRow.style.alignItems = 'center';
+            headerRow.style.gap = '8px';
+
+            let iconColor = '#38bdf8';
+            if (type === 'success') iconColor = '#10B981';
+            if (type === 'error') iconColor = '#EF4444';
+            if (type === 'warning') iconColor = '#f59e0b';
+
+            headerRow.innerHTML = `
+                <i data-lucide="${iconName}" style="width:18px; height:18px; color:${iconColor}; flex-shrink:0;"></i>
+                <span style="font-weight:700; font-size:13px; color:#fff;">${title || (type.toUpperCase())}</span>
+            `;
+            toastNode.appendChild(headerRow);
+
+            if (message) {
+                const bodyDiv = document.createElement('div');
+                bodyDiv.style.fontSize = '12px';
+                bodyDiv.style.lineHeight = '1.45';
+                bodyDiv.style.marginTop = '2px';
+                bodyDiv.innerHTML = message;
+                toastNode.appendChild(bodyDiv);
+            }
+
+            let toastInstance;
+
+            if (buttons && buttons.length > 0) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.display = 'flex';
+                btnContainer.style.gap = '8px';
+                btnContainer.style.marginTop = '6px';
+                btnContainer.style.flexWrap = 'wrap';
+
+                buttons.forEach(btnConfig => {
+                    const btn = document.createElement('button');
+                    btn.className = `toast-btn ${btnConfig.className || ''}`;
+                    btn.innerHTML = btnConfig.html || btnConfig.text;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (btnConfig.onClick) btnConfig.onClick();
+                        if (toastInstance) toastInstance.hideToast();
+                    };
+                    btnContainer.appendChild(btn);
+                });
+                toastNode.appendChild(btnContainer);
+            }
+
+            toastInstance = Toastify({
+                node: toastNode,
+                duration: duration,
+                close: true,
+                gravity: "top",
+                position: "right",
+                stopOnFocus: true,
+                className: `toast-${type}`,
+                escapeMarkup: false
+            });
+
+            toastInstance.showToast();
+            lucide.createIcons();
+            return toastInstance;
+        }
+
+        // --- Clipboard Copy Helper ---
+        async function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                }
+                showToast({
+                    title: 'Copied',
+                    message: successMsg,
+                    type: 'success',
+                    duration: 2500
+                });
+                return true;
+            } catch (err) {
+                showToast({
+                    title: 'Copy Failed',
+                    message: 'Could not write to clipboard: ' + err.message,
+                    type: 'error'
+                });
+                return false;
+            }
+        }
+
+        // Copy entire JSON currently in editor/tree
+        function copyCurrentJSON() {
+            if (!editor) return;
+            const content = editor.getValue();
+            if (!content || !content.trim()) {
+                showToast({
+                    title: 'Nothing to Copy',
+                    message: 'The editor is empty.',
+                    type: 'warning'
+                });
+                return;
+            }
+            copyToClipboard(content, 'Complete JSON copied to clipboard!');
+        }
+
+        // Monaco Init
+        require.config({paths: {vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
+        require(['vs/editor/editor.main'], function () {
+            monaco.editor.defineTheme('jetBrainsTheme', {
+                base: 'vs-dark', inherit: true, rules: [], colors: {'editor.background': '#1e1e1e'}
+            });
+
+            // Main Editor
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: '[\n  {\n    "id": 1,\n    "name": "JsonXplorer Studio",\n    "meta": "{\\"version\\": \\"2.0\\", \\"status\\": \\"active\\"}",\n    "tags": ["api", "json", "tree"]\n  }\n]',
+                language: 'json',
+                theme: 'jetBrainsTheme',
+                fontFamily: 'JetBrains Mono, monospace',
+                automaticLayout: true,
+                minimap: {enabled: false}
+            });
+
+            // Clear error line highlights when user types in editor
+            editor.onDidChangeModelContent(() => {
+                clearErrorDecorations();
+            });
+
+            // Params JSON Editor
+            paramsJsonEditor = monaco.editor.create(document.getElementById('paramsJsonEditor'), {
+                value: '{\n  \n}',
+                language: 'json',
+                theme: 'jetBrainsTheme',
+                fontFamily: 'JetBrains Mono, monospace',
+                automaticLayout: true,
+                minimap: {enabled: false}
+            });
+
+            // Headers JSON Editor
+            headersJsonEditor = monaco.editor.create(document.getElementById('headersJsonEditor'), {
+                value: '{\n  \n}',
+                language: 'json',
+                theme: 'jetBrainsTheme',
+                fontFamily: 'JetBrains Mono, monospace',
+                automaticLayout: true,
+                minimap: {enabled: false}
+            });
+        });
+
+        // --- Monaco Error Highlighting Helpers ---
+        function clearErrorDecorations() {
+            if (editor && errorDecorations.length > 0) {
+                errorDecorations = editor.deltaDecorations(errorDecorations, []);
+            }
+        }
+
+        function highlightErrorInMonaco(line, col) {
+            if (!editor) return;
+            switchView('code');
+            const totalLines = editor.getModel().getLineCount();
+            const safeLine = Math.min(Math.max(1, line), totalLines);
+            const maxCol = editor.getModel().getLineMaxColumn(safeLine);
+            const safeCol = Math.min(Math.max(1, col), maxCol);
+
+            editor.revealPositionInCenter({lineNumber: safeLine, column: safeCol});
+            editor.setPosition({lineNumber: safeLine, column: safeCol});
+            editor.focus();
+
+            errorDecorations = editor.deltaDecorations(errorDecorations, [
+                {
+                    range: new monaco.Range(safeLine, 1, safeLine, maxCol),
+                    options: {
+                        isWholeLine: true,
+                        className: 'monaco-error-line-highlight'
+                    }
+                }
+            ]);
+        }
+
+        // --- Export JSON Logic ---
+        function exportJSON() {
+            if (!editor) return;
+            const text = editor.getValue();
+            if (!text.trim()) {
+                showToast({title: 'Export Empty', message: 'No content to export.', type: 'warning'});
+                return;
+            }
+            const blob = new Blob([text], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'exported_data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast({title: 'Exported', message: 'File downloaded as <code>exported_data.json</code>', type: 'success'});
+        }
+
+        // --- View Toggling ---
+        function switchView(view) {
+            const treeTools = document.getElementById('treeQuickTools');
+            if (view === 'code') {
+                document.getElementById('editor-container').classList.add('active');
+                document.getElementById('tree-container').classList.remove('active');
+                document.getElementById('toggle-code').classList.add('active');
+                document.getElementById('toggle-tree').classList.remove('active');
+                if (treeTools) treeTools.style.display = 'none';
+            } else {
+                document.getElementById('editor-container').classList.remove('active');
+                document.getElementById('tree-container').classList.add('active');
+                document.getElementById('toggle-code').classList.remove('active');
+                document.getElementById('toggle-tree').classList.add('active');
+                if (treeTools) treeTools.style.display = 'flex';
+            }
+        }
+
+        // --- Modal Logic ---
+        function openModal() {
+            document.getElementById('configModal').classList.add('active');
+            setTimeout(() => {
+                if (paramsJsonEditor) paramsJsonEditor.layout();
+                if (headersJsonEditor) headersJsonEditor.layout();
+            }, 100);
+        }
+
+        function closeModal() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            document.querySelectorAll('.modal-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            setTimeout(() => {
+                if (paramsJsonEditor) paramsJsonEditor.layout();
+                if (headersJsonEditor) headersJsonEditor.layout();
+            }, 100);
+        }
+
+        function switchInputMode(type, mode, btn) {
+            document.querySelectorAll(`#tab-${type} .toggle-group .tab-btn`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const normalDiv = document.getElementById(`${type}-normal`);
+            const jsonDiv = document.getElementById(`${type}-json`);
+            const targetEditor = type === 'params' ? paramsJsonEditor : headersJsonEditor;
+
+            if (mode === 'json') {
+                const data = {};
+                document.querySelectorAll(`#${type}Section .kv-grid`).forEach(row => {
+                    const k = row.children[0].value.trim();
+                    const v = row.children[1].value.trim();
+                    if (k) data[k] = v;
+                });
+                targetEditor.setValue(JSON.stringify(data, null, 2));
+
+                normalDiv.style.display = 'none';
+                jsonDiv.style.display = 'block';
+            } else {
+                try {
+                    const jsonStr = targetEditor.getValue();
+                    const data = JSON.parse(jsonStr.trim() ? jsonStr : '{}');
+                    const section = document.getElementById(`${type}Section`);
+                    section.innerHTML = '';
+                    for (const k in data) {
+                        if (data.hasOwnProperty(k)) {
+                            addModalRow(`${type}Section`, k, data[k]);
+                        }
+                    }
+                    if (Object.keys(data).length === 0) {
+                        addModalRow(`${type}Section`);
+                    }
+                } catch (e) {
+                    showToast({
+                        title: 'Invalid JSON',
+                        message: `Please fix format before switching mode: <code>${e.message}</code>`,
+                        type: 'error'
+                    });
+                    return;
+                }
+
+                normalDiv.style.display = 'block';
+                jsonDiv.style.display = 'none';
+            }
+
+            setTimeout(() => targetEditor.layout(), 10);
+        }
+
+        function toggleAuthInput() {
+            const type = document.getElementById('authType').value;
+            document.getElementById('basicAuth').style.display = type === 'basic' ? 'flex' : 'none';
+            document.getElementById('authToken').style.display = type === 'bearer' ? 'block' : 'none';
+        }
+
+        function addModalRow(sectionId, key = '', val = '') {
+            const container = document.getElementById(sectionId);
+            const div = document.createElement('div');
+            div.className = 'kv-grid';
+            div.innerHTML = `
+                <input type="text" placeholder="Key" value="${key}">
+                <input type="text" placeholder="Value" value="${val}">
+                <button class="danger" onclick="this.parentElement.remove()"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        // --- URL Auto-Extraction ---
+        function autoExtractParams() {
+            const urlStr = document.getElementById('apiUrl').value;
+            try {
+                if (!urlStr.includes('?')) return;
+                const url = new URL(urlStr);
+                const paramsSection = document.getElementById('paramsSection');
+                paramsSection.innerHTML = '';
+
+                url.searchParams.forEach((val, key) => {
+                    addModalRow('paramsSection', key, val);
+                });
+
+                document.getElementById('apiUrl').value = url.origin + url.pathname;
+                lucide.createIcons();
+                showToast({
+                    title: 'Query Params Extracted',
+                    message: `Auto-populated query parameters into configuration.`,
+                    type: 'info',
+                    duration: 2000
+                });
+            } catch (e) {
+                // Invalid URL, ignore
+            }
+        }
+
+        // --- Deep Parse & Unescape ---
+        function deepParse(obj) {
+            if (typeof obj === 'string') {
+                try {
+                    const parsed = JSON.parse(obj);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        return deepParse(parsed);
+                    }
+                    return parsed;
+                } catch (e) {
+                    return obj;
+                }
+            } else if (Array.isArray(obj)) {
+                return obj.map(item => deepParse(item));
+            } else if (obj !== null && typeof obj === 'object') {
+                const result = {};
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) result[key] = deepParse(obj[key]);
+                }
+                return result;
+            }
+            return obj;
+        }
+
+        // --- Smart JSON Error Analysis & Location Finder ---
+        function analyzeJsonError(rawText, err) {
+            let line = 1;
+            let col = 1;
+            let position = null;
+            let hint = '';
+
+            const posMatch = err.message.match(/at position (\d+)/i) ||
+                err.message.match(/column (\d+) of the JSON data/i);
+            const lineColMatch = err.message.match(/line (\d+) column (\d+)/i);
+
+            if (lineColMatch) {
+                line = parseInt(lineColMatch[1], 10);
+                col = parseInt(lineColMatch[2], 10);
+            } else if (posMatch) {
+                position = parseInt(posMatch[1], 10);
+                const textBefore = rawText.slice(0, position);
+                const lines = textBefore.split('\n');
+                line = lines.length;
+                col = lines[lines.length - 1].length + 1;
+            }
+
+            const allLines = rawText.split('\n');
+            const targetLine = allLines[line - 1] || '';
+            const prevLine = allLines[line - 2] || '';
+
+            if (/,\s*[\}\]]/.test(rawText) || (/,\s*$/.test(prevLine.trim()) && /^\s*[\}\]]/.test(targetLine.trim()))) {
+                hint = 'Trailing comma detected before <code>}</code> or <code>]</code>. Standard JSON does not allow trailing commas.';
+            } else if (/'[^']*'/.test(targetLine) && !/"/.test(targetLine)) {
+                hint = 'Single quotes detected. JSON requires double quotes (<code>"key": "value"</code>).';
+            } else if (/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/.test(targetLine)) {
+                hint = 'Unquoted key detected. JSON property names must be enclosed in double quotes.';
+            } else if (/\/\//.test(targetLine) || /\/\*/.test(targetLine)) {
+                hint = 'Comments (<code>//</code> or <code>/* */</code>) detected. JSON does not allow comments.';
+            } else if (/\b(True|False|None)\b/.test(targetLine)) {
+                hint = 'Python literal detected (<code>True/False/None</code>). Use <code>true/false/null</code>.';
+            }
+
+            return {line, col, hint, reason: err.message, targetLine};
+        }
+
+        // --- Auto-Repair JSON utility ---
+        function tryRepairJson(str) {
+            try {
+                let clean = str;
+                clean = clean.replace(/\/\/.*$/gm, '');
+                clean = clean.replace(/\/\*[\s\S]*?\*\//g, '');
+                clean = clean.replace(/,(\s*[\]\}])/g, '$1');
+                clean = clean.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
+                clean = clean.replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":');
+                clean = clean.replace(/:\s*True\b/g, ': true')
+                    .replace(/:\s*False\b/g, ': false')
+                    .replace(/:\s*None\b/g, ': null');
+
+                const parsed = JSON.parse(clean);
+                return {success: true, repairedText: clean, data: parsed};
+            } catch (e) {
+                return {success: false};
+            }
+        }
+
+        // --- Parse JSON Logic ---
+        function parseEditorToTree() {
+            if (!editor) return;
+            const btn = document.getElementById('parseBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-circle" class="spin" style="width:16px;height:16px;"></i> Parsing...`;
+            lucide.createIcons();
+
+            clearErrorDecorations();
+
+            setTimeout(() => {
+                const rawText = editor.getValue();
+                if (!rawText.trim()) {
+                    showToast({title: 'Empty Content', message: 'Please paste or write JSON into the editor first.', type: 'warning'});
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="binary" style="width:16px;height:16px;"></i> Parse JSON`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                try {
+                    const initialParse = JSON.parse(rawText);
+                    parsedJSONData = deepParse(initialParse);
+
+                    editor.setValue(JSON.stringify(parsedJSONData, null, 2));
+                    editor.setPosition({lineNumber: 1, column: 1});
+
+                    renderTree(parsedJSONData);
+                    switchView('tree');
+
+                    showToast({
+                        title: 'JSON Parsed Successfully',
+                        message: 'Tree generated and nested stringified JSONs unescaped.',
+                        type: 'success',
+                        duration: 2500
+                    });
+                } catch (err) {
+                    const errInfo = analyzeJsonError(rawText, err);
+                    highlightErrorInMonaco(errInfo.line, errInfo.col);
+
+                    const repairAttempt = tryRepairJson(rawText);
+                    const toastButtons = [
+                        {
+                            text: 'Jump to Line',
+                            html: `<i data-lucide="crosshair" style="width:12px;height:12px;"></i> Line ${errInfo.line}`,
+                            className: '',
+                            onClick: () => highlightErrorInMonaco(errInfo.line, errInfo.col)
+                        }
+                    ];
+
+                    if (repairAttempt.success) {
+                        toastButtons.unshift({
+                            text: 'Auto-Fix & Parse',
+                            html: `<i data-lucide="wand-2" style="width:12px;height:12px;"></i> Auto-Fix Syntax`,
+                            className: 'repair',
+                            onClick: () => {
+                                parsedJSONData = deepParse(repairAttempt.data);
+                                editor.setValue(JSON.stringify(parsedJSONData, null, 2));
+                                clearErrorDecorations();
+                                renderTree(parsedJSONData);
+                                switchView('tree');
+                                showToast({
+                                    title: 'Auto-Fixed & Parsed',
+                                    message: 'Syntax issues (trailing commas / quotes) were fixed successfully!',
+                                    type: 'success'
+                                });
+                            }
+                        });
+                    }
+
+                    showToast({
+                        title: `Parse Error (Line ${errInfo.line}, Col ${errInfo.col})`,
+                        message: `
+                            ${errInfo.hint ? `<div style="color:#fde047; margin-bottom:4px; font-weight:500;">💡 ${errInfo.hint}</div>` : ''}
+                            <div style="font-family:'JetBrains Mono',monospace; opacity:0.9;">${errInfo.reason}</div>
+                        `,
+                        type: 'error',
+                        duration: 8000,
+                        buttons: toastButtons
+                    });
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="binary" style="width:16px;height:16px;"></i> Parse JSON`;
+                    lucide.createIcons();
+                }
+            }, 60);
+        }
+
+        // --- API Request Logic ---
+        async function sendApiRequest() {
+            const btn = document.getElementById('sendBtn');
+            const baseUrl = document.getElementById('apiUrl').value.trim();
+
+            if (!baseUrl) {
+                showToast({title: 'Missing URL', message: 'Please enter a target API URL.', type: 'warning'});
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-circle" class="spin" style="width:16px;height:16px;"></i> Sending...`;
+            lucide.createIcons();
+
+            const method = document.getElementById('httpMethod').value;
+
+            try {
+                const url = new URL(baseUrl);
+
+                const isParamsNormal = document.getElementById('params-normal').style.display !== 'none';
+                if (isParamsNormal) {
+                    document.querySelectorAll('#paramsSection .kv-grid').forEach(row => {
+                        const k = row.children[0].value.trim();
+                        const v = row.children[1].value.trim();
+                        if (k) url.searchParams.append(k, v);
+                    });
+                } else {
+                    const jsonText = paramsJsonEditor.getValue();
+                    if (jsonText.trim()) {
+                        const paramsObj = JSON.parse(jsonText);
+                        for (const k in paramsObj) {
+                            if (paramsObj.hasOwnProperty(k)) url.searchParams.append(k, paramsObj[k]);
+                        }
+                    }
+                }
+
+                const headers = new Headers();
+                const isHeadersNormal = document.getElementById('headers-normal').style.display !== 'none';
+                if (isHeadersNormal) {
+                    document.querySelectorAll('#headersSection .kv-grid').forEach(row => {
+                        const k = row.children[0].value.trim();
+                        const v = row.children[1].value.trim();
+                        if (k) headers.append(k, v);
+                    });
+                } else {
+                    const jsonText = headersJsonEditor.getValue();
+                    if (jsonText.trim()) {
+                        const headersObj = JSON.parse(jsonText);
+                        for (const k in headersObj) {
+                            if (headersObj.hasOwnProperty(k)) headers.append(k, headersObj[k]);
+                        }
+                    }
+                }
+
+                const authType = document.getElementById('authType').value;
+                if (authType === 'bearer') {
+                    const token = document.getElementById('authToken').value.trim();
+                    if (token) headers.append('Authorization', `Bearer ${token}`);
+                } else if (authType === 'basic') {
+                    const user = document.getElementById('authUser').value;
+                    const pass = document.getElementById('authPass').value;
+                    headers.append('Authorization', 'Basic ' + btoa(`${user}:${pass}`));
+                }
+
+                // const response = await fetch(url, { method, headers });
+                const response = await fetch(url, {method, headers, credentials: 'include'});
+                const textData = await response.text();
+                editor.setValue(textData);
+
+                showToast({
+                    title: `HTTP ${response.status} ${response.statusText || ''}`,
+                    message: `Received response (${textData.length} bytes)`,
+                    type: response.ok ? 'success' : 'warning',
+                    duration: 3000
+                });
+
+                parseEditorToTree();
+            } catch (err) {
+                showToast({
+                    title: 'Request Failed',
+                    message: `Network or CORS error: <code>${err.message}</code>`,
+                    type: 'error',
+                    duration: 6000
+                });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="send" style="width:16px;height:16px;"></i> Send`;
+                lucide.createIcons();
+            }
+        }
+
+        // --- JSON Path Formatter ---
+        function formatJsonPath(pathArray) {
+            if (!pathArray || pathArray.length === 0) return '$';
+            let path = '$';
+            for (const seg of pathArray) {
+                if (typeof seg === 'number' || /^\d+$/.test(seg)) {
+                    path += `[${seg}]`;
+                } else if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(seg)) {
+                    path += `.${seg}`;
+                } else {
+                    path += `[${JSON.stringify(seg)}]`;
+                }
+            }
+            return path;
+        }
+
+        // --- JSON Tree Rendering ---
+        function renderTree(data) {
+            const container = document.getElementById('tree-container');
+            container.innerHTML = '';
+            container.appendChild(buildNode('ROOT', data, true, []));
+            lucide.createIcons();
+        }
+
+        function buildNode(key, value, isRoot, path) {
+            const item = document.createElement('div');
+            item.className = 'tree-item';
+            const currentPath = isRoot ? [] : [...path, key];
+            let valType = typeof value;
+            if (value === null) valType = 'null';
+            if (Array.isArray(value)) valType = 'array';
+
+            const row = document.createElement('div');
+            row.className = 'tree-row';
+
+            if (valType === 'object' || valType === 'array') {
+                // Dedicated Left Gutter Chevron Toggle
+                const toggle = document.createElement('span');
+                toggle.className = 'tree-toggle';
+                toggle.title = 'Click to collapse/expand';
+                toggle.innerHTML = `<i data-lucide="chevron-down"></i>`;
+
+                const keySpan = document.createElement('span');
+                keySpan.className = 'tree-key';
+                keySpan.textContent = isRoot ? 'ROOT' : `"${key}"`;
+
+                const colon = document.createElement('span');
+                colon.className = 'tree-colon';
+                colon.textContent = isRoot ? '' : ':';
+
+                const bracketOpen = document.createElement('span');
+                bracketOpen.className = 'tree-bracket';
+                bracketOpen.textContent = valType === 'array' ? '[' : '{';
+
+                const bracketCloseCollapsed = document.createElement('span');
+                bracketCloseCollapsed.className = 'tree-bracket-collapsed';
+                bracketCloseCollapsed.textContent = valType === 'array' ? ']' : '}';
+
+                const count = valType === 'array' ? value.length : Object.keys(value).length;
+                const badge = document.createElement('span');
+                badge.className = 'tree-badge';
+                badge.textContent = `${count} ${valType === 'array' ? 'items' : 'keys'}`;
+
+                // Action buttons (Only visible on hover)
+                const actions = document.createElement('div');
+                actions.className = 'tree-actions';
+
+                // Copy Subtree Value
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'tree-action-btn';
+                copyBtn.title = 'Copy subtree JSON';
+                copyBtn.innerHTML = `<i data-lucide="copy" style="width:11px;height:11px;"></i> Copy`;
+                copyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const textToCopy = JSON.stringify(value, null, 2);
+                    copyToClipboard(textToCopy, `Copied subtree for ${isRoot ? 'ROOT' : `"${key}"`}`);
+                    copyBtn.classList.add('copied');
+                    copyBtn.innerHTML = `<i data-lucide="check" style="width:11px;height:11px;"></i> Copied`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.innerHTML = `<i data-lucide="copy" style="width:11px;height:11px;"></i> Copy`;
+                        lucide.createIcons();
+                    }, 1500);
+                };
+
+                // Copy JSON Path
+                const pathBtn = document.createElement('button');
+                pathBtn.className = 'tree-action-btn';
+                pathBtn.title = 'Copy JSON Path';
+                pathBtn.innerHTML = `<i data-lucide="route" style="width:11px;height:11px;"></i> Path`;
+                pathBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const formattedPath = formatJsonPath(currentPath);
+                    copyToClipboard(formattedPath, `Copied path: <code>${formattedPath}</code>`);
+                    pathBtn.classList.add('copied');
+                    pathBtn.innerHTML = `<i data-lucide="check" style="width:11px;height:11px;"></i> Copied`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        pathBtn.classList.remove('copied');
+                        pathBtn.innerHTML = `<i data-lucide="route" style="width:11px;height:11px;"></i> Path`;
+                        lucide.createIcons();
+                    }, 1500);
+                };
+
+                actions.appendChild(copyBtn);
+                if (!isRoot) actions.appendChild(pathBtn);
+
+                row.appendChild(toggle);
+                row.appendChild(keySpan);
+                if (!isRoot) row.appendChild(colon);
+                row.appendChild(bracketOpen);
+                row.appendChild(bracketCloseCollapsed);
+                row.appendChild(badge);
+                row.appendChild(actions);
+                item.appendChild(row);
+
+                // Children container
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'tree-children';
+                Object.keys(value).forEach(k => {
+                    childrenContainer.appendChild(buildNode(k, value[k], false, currentPath));
+                });
+
+                const bracketClose = document.createElement('div');
+                bracketClose.className = 'tree-bracket-close';
+                bracketClose.textContent = valType === 'array' ? ']' : '}';
+                childrenContainer.appendChild(bracketClose);
+
+                item.appendChild(childrenContainer);
+
+                // Toggle click handler
+                toggle.onclick = (e) => {
+                    e.stopPropagation();
+                    const isCollapsed = item.classList.toggle('collapsed');
+                    if (isCollapsed) {
+                        toggle.classList.add('collapsed');
+                    } else {
+                        toggle.classList.remove('collapsed');
+                    }
+                };
+
+            } else {
+                // Primitive leaf node: matching spacer guarantees exact alignment
+                const spacer = document.createElement('span');
+                spacer.className = 'tree-spacer';
+
+                const keySpan = document.createElement('span');
+                keySpan.className = 'tree-key';
+                keySpan.textContent = `"${key}"`;
+
+                const colon = document.createElement('span');
+                colon.className = 'tree-colon';
+                colon.textContent = ':';
+
+                const valSpan = document.createElement('span');
+                valSpan.className = `tree-value tree-${valType}`;
+                valSpan.textContent = valType === 'string' ? `"${value}"` : String(value);
+
+                // Actions for leaf node
+                const actions = document.createElement('div');
+                actions.className = 'tree-actions';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'tree-action-btn';
+                copyBtn.title = 'Copy value';
+                copyBtn.innerHTML = `<i data-lucide="copy" style="width:11px;height:11px;"></i> Copy`;
+                copyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const textToCopy = typeof value === 'string' ? value : String(value);
+                    copyToClipboard(textToCopy, `Copied value of "${key}"`);
+                    copyBtn.classList.add('copied');
+                    copyBtn.innerHTML = `<i data-lucide="check" style="width:11px;height:11px;"></i> Copied`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.innerHTML = `<i data-lucide="copy" style="width:11px;height:11px;"></i> Copy`;
+                        lucide.createIcons();
+                    }, 1500);
+                };
+
+                const pathBtn = document.createElement('button');
+                pathBtn.className = 'tree-action-btn';
+                pathBtn.title = 'Copy JSON Path';
+                pathBtn.innerHTML = `<i data-lucide="route" style="width:11px;height:11px;"></i> Path`;
+                pathBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const formattedPath = formatJsonPath(currentPath);
+                    copyToClipboard(formattedPath, `Copied path: <code>${formattedPath}</code>`);
+                    pathBtn.classList.add('copied');
+                    pathBtn.innerHTML = `<i data-lucide="check" style="width:11px;height:11px;"></i> Copied`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        pathBtn.classList.remove('copied');
+                        pathBtn.innerHTML = `<i data-lucide="route" style="width:11px;height:11px;"></i> Path`;
+                        lucide.createIcons();
+                    }, 1500);
+                };
+
+                actions.appendChild(copyBtn);
+                actions.appendChild(pathBtn);
+
+                row.appendChild(spacer);
+                row.appendChild(keySpan);
+                row.appendChild(colon);
+                row.appendChild(valSpan);
+                row.appendChild(actions);
+                item.appendChild(row);
+            }
+            return item;
+        }
+
+        // --- Expand / Collapse Tree Controls ---
+        function expandAllTree() {
+            document.querySelectorAll('#tree-container .tree-item').forEach(el => el.classList.remove('collapsed'));
+            document.querySelectorAll('#tree-container .tree-toggle').forEach(el => el.classList.remove('collapsed'));
+            document.querySelectorAll('#tree-container .tree-children').forEach(el => el.style.display = '');
+            showToast({title: 'Expanded', message: 'All tree nodes expanded.', type: 'info', duration: 1500});
+        }
+
+        function collapseAllTree() {
+            document.querySelectorAll('#tree-container .tree-item').forEach((el, idx) => {
+                if (idx > 0) {
+                    el.classList.add('collapsed');
+                    const toggle = el.querySelector(':scope > .tree-row > .tree-toggle');
+                    if (toggle) toggle.classList.add('collapsed');
+                }
+            });
+            showToast({title: 'Collapsed', message: 'Tree nodes collapsed.', type: 'info', duration: 1500});
+        }
+
+        // --- Live Search ---
+        function liveSearch() {
+            const term = document.getElementById('searchInput').value.toLowerCase().trim();
+            const badge = document.getElementById('searchBadge');
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+
+            if (!term || !parsedJSONData) {
+                badge.style.display = 'none';
+                return;
+            }
+
+            const elementsToSearch = document.querySelectorAll('.tree-key, .tree-value');
+            let matchCount = 0;
+
+            elementsToSearch.forEach(el => {
+                if (el.textContent.toLowerCase().includes(term)) {
+                    matchCount++;
+                    el.classList.add('highlight');
+
+                    // Expand parent nodes
+                    let parent = el.parentElement;
+                    while (parent && parent.id !== 'tree-container') {
+                        if (parent.classList.contains('tree-item')) {
+                            parent.style.display = 'block';
+
+                            parent.classList.remove('collapsed');
+                            const childrenContainer = parent.querySelector(':scope > .tree-children');
+                            if (childrenContainer) {
+                                childrenContainer.style.display = '';
+                                const toggle = parent.querySelector(':scope > .tree-row > .tree-toggle');
+                                if (toggle) toggle.classList.remove('collapsed');
+                            }
+                        }
+                        parent = parent.parentElement;
+                    }
+                }
+            });
+
+            badge.style.display = 'inline-block';
+            badge.textContent = `${matchCount} match${matchCount === 1 ? '' : 'es'}`;
+        }
+    </script>
+</body>
+
+</html>
