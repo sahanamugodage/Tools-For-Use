@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tools-For-Use — Browser-based developer utilities</title>
+<style>
+  /* ============================================================
+     Swiss / International Typographic Style
+     — Grid-based, mathematical, sans-serif, asymmetric balance
+     — One accent color (Swiss red), sharp corners, no decoration
+     ============================================================ */
+
+  :root {
+    --bg: #F5F4F0;          /* warm off-white, paper */
+    --ink: #0A0A0A;         /* primary text */
+    --ink-2: #4A4A4A;       /* secondary text */
+    --ink-3: #8A8A8A;       /* tertiary / labels */
+    --rule: #0A0A0A;        /* hairlines (intentionally strong) */
+    --rule-soft: #D0CFC9;   /* subtle dividers */
+    --accent: #E63946;      /* Swiss red — used sparingly */
+    --live: #1F7A3A;        /* status: live */
+    --planned: #8A6A1F;     /* status: planned */
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, "Inter", "Akzidenz-Grotesk", Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* All type flush left, ragged right */
+  h1, h2, h3, h4, p, a, span, li {
+    text-align: left;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    transition: color 0.12s linear, background 0.12s linear;
+  }
+
+  a:hover {
+    color: var(--accent);
+  }
+
+  /* ============================================================
+     LAYOUT GRID
+     ============================================================ */
+
+  .frame {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ============================================================
+     TOP BAR — thin metadata strip
+     ============================================================ */
+
+  .topbar {
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 0;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .topbar .frame {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .topbar .left { color: var(--ink); }
+  .topbar .center { text-align: center; color: var(--ink-2); }
+  .topbar .right { text-align: right; color: var(--ink-2); }
+
+  /* ============================================================
+     HERO — asymmetric, oversized headline + structured metadata
+     ============================================================ */
+
+  .hero {
+    padding: 96px 0 80px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hero .grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 48px;
+    align-items: end;
+  }
+
+  .hero .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero .label::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 8.5vw, 124px);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+  }
+
+  .hero h1 .accent {
+    color: var(--accent);
+  }
+
+  .hero .lede {
+    font-size: 17px;
+    line-height: 1.5;
+    max-width: 36ch;
+    color: var(--ink-2);
+  }
+
+  /* Right column — structured metadata block */
+  .hero .meta {
+    border-top: 1px solid var(--rule);
+    padding-top: 24px;
+  }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 13px;
+  }
+
+  .meta-row dt {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--ink-3);
+    padding-top: 2px;
+  }
+
+  .meta-row dd {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .meta-row dd .muted {
+    color: var(--ink-2);
+    font-weight: 400;
+  }
+
+  /* ============================================================
+     SECTION HEADER
+     ============================================================ */
+
+  .section {
+    padding: 80px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: 1fr 6fr 5fr;
+    gap: 32px;
+    align-items: baseline;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0;
+  }
+
+  .section-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .section-desc {
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    max-width: 42ch;
+  }
+
+  /* ============================================================
+     TOOLS LIST — magazine-style rows, numbered
+     ============================================================ */
+
+  .tools {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tool {
+    display: grid;
+    grid-template-columns: 64px 3fr 4fr 3fr 1fr;
+    gap: 32px;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    align-items: start;
+    transition: background 0.12s linear;
+  }
+
+  .tool:last-child {
+    border-bottom: none;
+  }
+
+  a.tool:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  a.tool:hover .tool-num,
+  a.tool:hover .tool-tags span,
+  a.tool:hover .tool-status.planned,
+  a.tool:hover .tool-status.live,
+  a.tool:hover .tool-cta {
+    color: var(--bg);
+    border-color: var(--bg);
+  }
+
+  a.tool:hover .tool-tags span {
+    background: transparent;
+  }
+
+  .tool-num {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+    padding-top: 4px;
+  }
+
+  .tool-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .tool-status {
+    display: inline-block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+  }
+
+  .tool-status.live { color: var(--live); }
+  .tool-status.planned { color: var(--planned); }
+
+  .tool-desc {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    padding-top: 4px;
+  }
+
+  a.tool:hover .tool-desc {
+    color: var(--bg);
+    opacity: 0.85;
+  }
+
+  .tool-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 6px;
+  }
+
+  .tool-tags span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    border: 1px solid var(--rule-soft);
+    padding: 3px 8px;
+    line-height: 1.4;
+  }
+
+  .tool-cta {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    padding-top: 6px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .tool.disabled .tool-cta {
+    color: var(--ink-3);
+  }
+
+  .tool.disabled {
+    cursor: default;
+  }
+
+  .tool.disabled:hover {
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .tool.disabled:hover * {
+    color: inherit !important;
+    border-color: var(--rule-soft) !important;
+  }
+
+  /* ============================================================
+     FOOTER — structured metadata grid
+     ============================================================ */
+
+  footer {
+    padding: 64px 0 48px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 24px;
+  }
+
+  .footer-col h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .footer-col p,
+  .footer-col a {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+    border-bottom: none;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .footer-col a:hover {
+    color: var(--accent);
+  }
+
+  .baseline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+
+  .baseline .right { text-align: right; }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+
+  @media (max-width: 900px) {
+    .frame { padding: 0 20px; }
+
+    .topbar .frame {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .topbar .center, .topbar .right { text-align: left; }
+
+    .hero { padding: 56px 0 48px; }
+    .hero .grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .hero h1 { font-size: clamp(40px, 12vw, 64px); }
+
+    .section { padding: 48px 0; }
+    .section-head {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding-bottom: 24px;
+    }
+
+    .tool {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 28px 0;
+    }
+    .tool-cta { text-align: left; }
+
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .baseline { grid-template-columns: 1fr; }
+    .baseline .right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============== TOP BAR ============== -->
+  <div class="topbar">
+    <div class="frame">
+      <div class="left">Tools-For-Use / Index</div>
+      <div class="center">A collection of standalone browser utilities</div>
+      <div class="right">MIT License · 2026</div>
+    </div>
+  </div>
+
+  <!-- ============== HERO ============== -->
+  <header class="hero">
+    <div class="frame">
+      <div class="grid">
+
+        <div class="left-col">
+          <div class="label">Tools-For-Use / Vol. 01</div>
+          <h1>
+            Tools for<br>
+            the browser.<br>
+            <span class="accent">Nothing else.</span>
+          </h1>
+          <p class="lede">
+            A curated collection of standalone, zero-setup developer utilities.
+            Each tool runs as a single HTML file — no installs, no backends,
+            no build steps. Open and use.
+          </p>
+        </div>
+
+        <dl class="meta">
+          <div class="meta-row">
+            <dt>Category</dt>
+            <dd>Developer tooling <span class="muted">/ browser-native</span></dd>
+          </div>
+          <div class="meta-row">
+            <dt>Format</dt>
+            <dd>Single HTML file <span class="muted">/ self-contained</span></dd>
+          </div>
+          <div class="meta-row">
+            <dt>Dependencies</dt>
+            <dd>None at runtime <span class="muted">/ CDN for editor</span></dd>
+          </div>
+          <div class="meta-row">
+            <dt>Stack</dt>
+            <dd>HTML / CSS / JS <span class="muted">/ vanilla</span></dd>
+          </div>
+          <div class="meta-row">
+            <dt>Audience</dt>
+            <dd>Humans <span class="muted">/ AI-assisted workflows</span></dd>
+          </div>
+          <div class="meta-row">
+            <dt>Catalog</dt>
+            <dd>1 live <span class="muted">/ 3 planned</span></dd>
+          </div>
+        </dl>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ============== SECTION 01 — TOOLS ============== -->
+  <section class="section">
+    <div class="frame">
+
+      <div class="section-head">
+        <div class="section-num">01</div>
+        <h2 class="section-title">Catalog</h2>
+        <p class="section-desc">
+          Tools are listed by status. Live tools open directly in the browser.
+          Planned tools are part of the roadmap and will ship as single HTML
+          files following the same constraints.
+        </p>
+      </div>
+
+      <div class="tools">
+
+        <!-- Tool 01 — Live -->
+        <a class="tool" href="Req%20handler/JsonXplorer.html">
+          <div class="tool-num">01.1</div>
+          <div>
+            <div class="tool-title">JsonXplorer API Studio</div>
+            <span class="tool-status live">Live</span>
+          </div>
+          <div class="tool-desc">
+            A REST API client and JSON exploration studio. Send requests, explore
+            response trees, auto-repair escaped JSON, copy JSONPath, and export
+            payloads. Powered by the Monaco editor.
+          </div>
+          <div class="tool-tags">
+            <span>REST</span>
+            <span>JSON</span>
+            <span>Monaco</span>
+          </div>
+          <div class="tool-cta">Open →</div>
+        </a>
+
+        <!-- Tool 02 — Planned -->
+        <div class="tool disabled">
+          <div class="tool-num">01.2</div>
+          <div>
+            <div class="tool-title">JWT Inspector &amp; Decoder</div>
+            <span class="tool-status planned">Planned</span>
+          </div>
+          <div class="tool-desc">
+            Inspect, decode, and validate JSON Web Tokens. Visualize header and
+            payload, check expiry, and inspect signatures without sending data
+            anywhere.
+          </div>
+          <div class="tool-tags">
+            <span>JWT</span>
+            <span>Auth</span>
+            <span>Security</span>
+          </div>
+          <div class="tool-cta">Planned</div>
+        </div>
+
+        <!-- Tool 03 — Planned -->
+        <div class="tool disabled">
+          <div class="tool-num">01.3</div>
+          <div>
+            <div class="tool-title">Regex Live Lab</div>
+            <span class="tool-status planned">Planned</span>
+          </div>
+          <div class="tool-desc">
+            A live regular expression playground. Test patterns against sample
+            text, see matches highlighted in real time, and inspect capture
+            groups with full flag support.
+          </div>
+          <div class="tool-tags">
+            <span>Regex</span>
+            <span>Live</span>
+            <span>PCRE</span>
+          </div>
+          <div class="tool-cta">Planned</div>
+        </div>
+
+        <!-- Tool 04 — Planned -->
+        <div class="tool disabled">
+          <div class="tool-num">01.4</div>
+          <div>
+            <div class="tool-title">Base64 / Hash Studio</div>
+            <span class="tool-status planned">Planned</span>
+          </div>
+          <div class="tool-desc">
+            Encode and decode Base64, compute hashes (MD5, SHA-1, SHA-256,
+            SHA-512), and compare digests. Useful for inspecting opaque tokens
+            and verifying integrity.
+          </div>
+          <div class="tool-tags">
+            <span>Base64</span>
+            <span>SHA</span>
+            <span>MD5</span>
+          </div>
+          <div class="tool-cta">Planned</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FOOTER ============== -->
+  <footer>
+    <div class="frame">
+
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>Repository</h4>
+          <p><a href="https://github.com/sahanamugodage/Tools-For-Use" target="_blank" rel="noopener">GitHub →</a></p>
+          <p>MIT License</p>
+        </div>
+        <div class="footer-col">
+          <h4>Live tool</h4>
+          <p><a href="Req%20handler/JsonXplorer.html">JsonXplorer →</a></p>
+          <p>REST / JSON</p>
+        </div>
+        <div class="footer-col">
+          <h4>Roadmap</h4>
+          <p>JWT Inspector</p>
+          <p>Regex Live Lab</p>
+          <p>Base64 / Hash Studio</p>
+        </div>
+        <div class="footer-col">
+          <h4>Contribute</h4>
+          <p>Open an issue</p>
+          <p>Submit a PR</p>
+        </div>
+      </div>
+
+      <div class="baseline">
+        <div class="left">Tools-For-Use — Index № 01</div>
+        <div class="right">Set in Helvetica Neue · Asymmetric grid · Flush left</div>
+      </div>
+
+    </div>
+  </footer>
+
+</body>
+</html>
